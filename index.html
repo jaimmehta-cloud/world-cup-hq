@@ -1,208 +1,36 @@
-const PICKS = [
-  ["South Africa", "Canada", "Canada"],
-  ["Germany", "Paraguay", "Germany"],
-  ["France", "Sweden", "France"],
-  ["Netherlands", "Morocco", "Netherlands"],
-  ["Brazil", "Japan", "Brazil"],
-  ["Ivory Coast", "Norway", "Norway"],
-  ["Mexico", "Ecuador", "Mexico"],
-  ["England", "DR Congo", "England"],
-  ["Belgium", "Senegal", "Belgium"],
-  ["United States", "Bosnia and Herzegovina", "United States"],
-  ["Spain", "Austria", "Spain"],
-  ["Portugal", "Croatia", "Portugal"],
-  ["Switzerland", "Algeria", "Switzerland"],
-  ["Australia", "Egypt", "Egypt"],
-  ["Argentina", "Cape Verde", "Argentina"],
-  ["Colombia", "Ghana", "Colombia"]
-];
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>World Cup HQ</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+<h1>⚽ World Cup HQ</h1>
+<nav>
+<button data-screen="home">Home</button>
+<button data-screen="bracket">Bracket</button>
+<button data-screen="live">Live</button>
+</nav>
 
-function clean(x) {
-  return String(x || "")
-    .toLowerCase()
-    .replace("usa", "united states")
-    .replace("côte d’ivoire", "ivory coast")
-    .replace("côte d'ivoire", "ivory coast")
-    .replace("congo dr", "dr congo")
-    .replace(/[^a-z0-9 ]/g, "")
-    .trim();
-}
+<section id="home" class="screen active">
+<h2>Home</h2>
+<p>Welcome back!</p>
+</section>
 
-function same(a, b) {
-  return clean(a) === clean(b);
-}
+<section id="bracket" class="screen">
+<h2>Bracket</h2>
+<div id="bracket-container">Loading…</div>
+</section>
 
-function winnerOf(m) {
-  if (m.winner && m.winner !== "Draw") return m.winner;
-  if (typeof m.homeScore === "number" && typeof m.awayScore === "number") {
-    if (m.homeScore > m.awayScore) return m.homeTeam;
-    if (m.awayScore > m.homeScore) return m.awayTeam;
-  }
-  return null;
-}
-
-function finished(m) {
-  return ["FINISHED", "FULL_TIME", "FT"].includes(String(m.status || "").toUpperCase());
-}
-
-function key(a, b) {
-  return [clean(a), clean(b)].sort().join("|");
-}
-
-function setText(id, text) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = text;
-}
-
-function renderMatches(matches) {
-  const box = document.getElementById("live-matches");
-  if (!box) return;
-
-  box.innerHTML = matches.map(m => `
-    <div class="row">
-      <b>${m.homeTeam} vs ${m.awayTeam}</b>
-      <span>${m.scoreText || m.status}</span>
-    </div>
-  `).join("");
-}
-
-function getBracketCards() {
-  return Array.from(document.querySelectorAll(".bracketMatch"));
-}
-
-function setCardTeams(card, team1, team2) {
-  const lines = card.querySelectorAll(".teamLine .teamInline");
-  if (lines[0] && team1) {
-    lines[0].textContent = team1;
-    lines[0].href = "#team-" + clean(team1).replaceAll(" ", "-");
-  }
-  if (lines[1] && team2) {
-    lines[1].textContent = team2;
-    lines[1].href = "#team-" + clean(team2).replaceAll(" ", "-");
-  }
-}
-
-function getWinner(matches, a, b) {
-  const m = matches.find(x => key(x.homeTeam, x.awayTeam) === key(a, b));
-  if (!m || !finished(m)) return null;
-  return winnerOf(m);
-}
-
-function updatePickCards(matches) {
-  const cards = getBracketCards();
-  let correct = 0, wrong = 0, judged = 0;
-
-  PICKS.forEach(([a, b, pick]) => {
-    const m = matches.find(x => key(x.homeTeam, x.awayTeam) === key(a, b));
-    if (!m || !finished(m)) return;
-
-    const winner = winnerOf(m);
-    if (!winner) return;
-
-    judged++;
-    const isCorrect = same(winner, pick);
-    if (isCorrect) correct++;
-    else wrong++;
-
-    cards.forEach(card => {
-      if (card.textContent.includes(a) && card.textContent.includes(b)) {
-        card.classList.remove("correct", "wrong", "alive", "special");
-        card.classList.add(isCorrect ? "correct" : "wrong");
-
-        const pill = card.querySelector(".pill");
-        if (pill) {
-          pill.textContent = isCorrect
-            ? `✅ Correct • ${m.scoreText}`
-            : `❌ Wrong • ${m.scoreText}`;
-        }
-      }
-    });
-  });
-
-  const percent = judged ? Math.round((correct / judged) * 100) : 0;
-
-  setText(
-    "live-accuracy",
-    judged ? `${percent}% — ${correct}/${judged} judged picks correct.` : "No completed bracket picks yet."
-  );
-
-  document.querySelectorAll("#accuracy .kpi").forEach(el => {
-    if (judged) el.textContent = `${percent}%`;
-  });
-
-  return { correct, wrong, judged, percent };
-}
-
-function updateFutureBracket(matches) {
-  const cards = getBracketCards();
-
-  const winners = {
-    canadaMorocco1: getWinner(matches, "South Africa", "Canada") || "Canada",
-    franceParaguay1: getWinner(matches, "Germany", "Paraguay") || "Germany",
-    franceParaguay2: getWinner(matches, "France", "Sweden") || "France",
-    canadaMorocco2: getWinner(matches, "Netherlands", "Morocco") || "Netherlands",
-
-    brazilNorway1: getWinner(matches, "Brazil", "Japan") || "Brazil",
-    brazilNorway2: getWinner(matches, "Ivory Coast", "Norway") || "Norway",
-    mexicoEngland1: getWinner(matches, "Mexico", "Ecuador") || "Mexico",
-    mexicoEngland2: getWinner(matches, "England", "DR Congo") || "England",
-
-    usaBelgium1: getWinner(matches, "Belgium", "Senegal") || "Belgium",
-    usaBelgium2: getWinner(matches, "United States", "Bosnia and Herzegovina") || "United States",
-
-    spainPortugal1: getWinner(matches, "Spain", "Austria") || "Spain",
-    spainPortugal2: getWinner(matches, "Portugal", "Croatia") || "Portugal",
-
-    swissColombia1: getWinner(matches, "Switzerland", "Algeria") || "Switzerland",
-    argentinaEgypt1: getWinner(matches, "Australia", "Egypt") || "Egypt",
-    argentinaEgypt2: getWinner(matches, "Argentina", "Cape Verde") || "Argentina",
-    swissColombia2: getWinner(matches, "Colombia", "Ghana") || "Colombia"
-  };
-
-  if (cards[16]) setCardTeams(cards[16], winners.franceParaguay2, winners.franceParaguay1);
-  if (cards[17]) setCardTeams(cards[17], winners.canadaMorocco1, winners.canadaMorocco2);
-  if (cards[18]) setCardTeams(cards[18], winners.spainPortugal1, winners.spainPortugal2);
-  if (cards[19]) setCardTeams(cards[19], winners.usaBelgium1, winners.usaBelgium2);
-  if (cards[20]) setCardTeams(cards[20], winners.brazilNorway1, winners.brazilNorway2);
-  if (cards[21]) setCardTeams(cards[21], winners.mexicoEngland2, winners.mexicoEngland1);
-  if (cards[22]) setCardTeams(cards[22], winners.argentinaEgypt2, winners.argentinaEgypt1);
-  if (cards[23]) setCardTeams(cards[23], winners.swissColombia2, winners.swissColombia1);
-
-  document.querySelectorAll(".bracketRound").forEach(round => {
-    if (round.textContent.includes("Round of 16")) {
-      round.querySelectorAll(".pill").forEach(p => {
-        if (!p.textContent.includes("Correct") && !p.textContent.includes("Wrong")) {
-          p.textContent = "Auto-updated path";
-        }
-      });
-    }
-  });
-}
-
-async function loadLiveScores() {
-  try {
-    setText("live-connection", "Connecting...");
-
-    const res = await fetch("/api/live-scores", { cache: "no-store" });
-    const data = await res.json();
-
-    if (!data.ok) throw new Error(data.error || "Live score error");
-
-    const matches = data.matches || [];
-
-    renderMatches(matches);
-    updatePickCards(matches);
-    updateFutureBracket(matches);
-
-    setText("live-connection", `Connected. Loaded ${matches.length} matches.`);
-    setText("live-updated", `Updated ${new Date().toLocaleTimeString()}.`);
-  } catch (err) {
-    setText("live-connection", "Live update failed: " + err.message);
-    setText("live-updated", "Check Vercel settings or API.");
-  }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  loadLiveScores();
-  setInterval(loadLiveScores, 180000);
-});
+<section id="live" class="screen">
+<h2>Live Scores</h2>
+<p id="live-connection">Connecting…</p>
+<div id="live-matches"></div>
+</section>
+</div>
+<script src="live-updates.js"></script>
+</body>
+</html>
