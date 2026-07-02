@@ -100,3 +100,16 @@ document.addEventListener("DOMContentLoaded", () => {
   loadPregameOddsOnly();
   setInterval(loadPregameOddsOnly, 180000);
 });
+document.addEventListener("DOMContentLoaded", () => {
+  const topbar = document.getElementById("topbar");
+  const btn = document.getElementById("menuToggle");
+
+  if (!topbar || !btn) return;
+
+  btn.addEventListener("click", () => {
+    topbar.classList.toggle("collapsed");
+    btn.textContent = topbar.classList.contains("collapsed")
+      ? "▼ Show Menu"
+      : "▲ Hide Menu";
+  });
+});
