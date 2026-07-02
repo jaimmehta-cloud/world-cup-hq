@@ -52,15 +52,20 @@ const bracketPicks = {
 };
 
 function oddsClean(x) {
-  return String(x || "")
+  const map = {
+    esp: "spain",
+    aut: "austria",
+    arg: "argentina",
+    cpv: "capeverde",
+    usa: "unitedstates",
+    bih: "bosniaandherzegovina"
+  };
+
+  const raw = String(x || "")
     .toLowerCase()
-    .replace("usa", "united states")
-    .replace("u.s.", "united states")
-    .replace("bosnia-herzegovina", "bosnia and herzegovina")
-    .replace("bosnia & herzegovina", "bosnia and herzegovina")
-    .replace("côte d’ivoire", "ivory coast")
-    .replace("côte d'ivoire", "ivory coast")
     .replace(/[^a-z0-9]/g, "");
+
+  return map[raw] || raw;
 }
 
 const pickKey = [oddsClean(m.homeTeam), oddsClean(m.awayTeam)].sort().join("|");
