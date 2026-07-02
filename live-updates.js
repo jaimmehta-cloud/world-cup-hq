@@ -37,14 +37,20 @@ function renderPregameOdds(matches) {
     const home = pregameWinChance(m.homeTeam, m.awayTeam);
     const away = 100 - home;
     const label = Math.abs(home - away) < 20 ? "🔥 Upset danger" : "✅ Strong favorite";
-
+const pickMatch = (window.JAI_BRACKET || []).find(p =>
+  (p[0] === m.homeTeam && p[1] === m.awayTeam) ||
+  (p[1] === m.homeTeam && p[0] === m.awayTeam)
+);
+const jaiPick = pickMatch ? pickMatch[2] : "No pick found";
+    
     return `
       <article class="card soccerCard">
         <h3>${m.homeTeam} vs ${m.awayTeam}</h3>
         <p class="deepText">${m.utcDate ? new Date(m.utcDate).toLocaleString() : m.status}</p>
         <div class="row"><b>${m.homeTeam}</b><span>${home}%</span></div>
         <div class="row"><b>${m.awayTeam}</b><span>${away}%</span></div>
-        <p class="pill">${label}</p>
+       <p class="pill">⭐ Jai's Pick: ${jaiPick}</p>
+<p class="pill">${label}</p>
       </article>
     `;
   }).join("");
