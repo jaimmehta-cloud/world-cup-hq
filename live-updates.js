@@ -37,10 +37,34 @@ function renderPregameOdds(matches) {
     const home = pregameWinChance(m.homeTeam, m.awayTeam);
     const away = 100 - home;
     const label = Math.abs(home - away) < 20 ? "🔥 Upset danger" : "✅ Strong favorite";
-const pickMatch = (window.JAI_BRACKET || []).find(p =>
-  (p[0] === m.homeTeam && p[1] === m.awayTeam) ||
-  (p[1] === m.homeTeam && p[0] === m.awayTeam)
+const bracketPicks = [
+  ["South Africa","Canada","Canada"],
+  ["Germany","Paraguay","Germany"],
+  ["France","Sweden","France"],
+  ["Netherlands","Morocco","Netherlands"],
+  ["Brazil","Japan","Brazil"],
+  ["Ivory Coast","Norway","Norway"],
+  ["Mexico","Ecuador","Mexico"],
+  ["England","DR Congo","England"],
+  ["Belgium","Senegal","Belgium"],
+  ["United States","Bosnia and Herzegovina","United States"],
+  ["Spain","Austria","Spain"],
+  ["Portugal","Croatia","Portugal"],
+  ["Switzerland","Algeria","Switzerland"],
+  ["Australia","Egypt","Egypt"],
+  ["Argentina","Cape Verde","Argentina"],
+  ["Colombia","Ghana","Colombia"]
+];
+
+function oddsClean(x) {
+  return String(x || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+const pickMatch = bracketPicks.find(p =>
+  (oddsClean(p[0]) === oddsClean(m.homeTeam) && oddsClean(p[1]) === oddsClean(m.awayTeam)) ||
+  (oddsClean(p[1]) === oddsClean(m.homeTeam) && oddsClean(p[0]) === oddsClean(m.awayTeam))
 );
+
 const jaiPick = pickMatch ? pickMatch[2] : "No pick found";
     
     return `
